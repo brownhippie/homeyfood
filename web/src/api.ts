@@ -107,10 +107,22 @@ export const api = {
     delivery?: boolean
     takeOut?: boolean
   }) => request('/me/chef-profile', { method: 'PUT', body: JSON.stringify(body) }),
-  listings: (params?: { mode?: string; tag?: string; excludeAllergen?: string[] }) => {
+  listings: (params?: {
+    mode?: string
+    tag?: string
+    excludeAllergen?: string[]
+    cuisine?: string
+    category?: string
+    minRating?: number
+    sort?: 'newest' | 'rating' | 'price'
+  }) => {
     const qs = new URLSearchParams()
     if (params?.mode) qs.set('mode', params.mode)
     if (params?.tag) qs.set('tag', params.tag)
+    if (params?.cuisine) qs.set('cuisine', params.cuisine)
+    if (params?.category) qs.set('category', params.category)
+    if (params?.minRating) qs.set('minRating', String(params.minRating))
+    if (params?.sort) qs.set('sort', params.sort)
     for (const a of params?.excludeAllergen || []) qs.append('excludeAllergen', a)
     const str = qs.toString()
     return request(`/listings${str ? `?${str}` : ''}`) as Promise<any[]>

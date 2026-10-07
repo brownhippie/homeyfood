@@ -28,6 +28,10 @@ export default function Search() {
   const [bookingMessage, setBookingMessage] = useState<string | null>(null)
   const [allergenOptions, setAllergenOptions] = useState<string[]>([])
   const [excludeAllergens, setExcludeAllergens] = useState<string[]>([])
+  const [sort, setSort] = useState<'newest' | 'rating' | 'price'>('newest')
+  const [cuisine, setCuisine] = useState('')
+  const [category, setCategory] = useState('')
+  const [minRating, setMinRating] = useState(0)
 
   useEffect(() => {
     api.allergens().then(setAllergenOptions).catch(() => {})
@@ -36,11 +40,27 @@ export default function Search() {
   useEffect(() => {
     setLoading(true)
     api
-      .listings({ ...(mode ? { mode } : {}), excludeAllergen: excludeAllergens })
+      .listings({
+        ...(mode ? { mode } : {}),
+        excludeAllergen: excludeAllergens,
+        cuisine: cuisine || undefined,
+        category: category || undefined,
+        minRating: minRating || undefined,
+        sort,
+      })
       .then(setListings)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [mode, excludeAllergens])
+  }, [mode, excludeAllergens, cuisine, category, minRating, sort])
+
+  const cuisineOptions = useMemo(
+    () => [...new Set(listings.map((l) => l.cuisine).filter(Boolean))] as string[],
+    [listings]
+  )
+  const categoryOptions = useMemo(
+    () => [...new Set(listings.map((l) => l.category).filter(Boolean))] as string[],
+    [listings]
+  )
 
   function toggleExcludeAllergen(a: string) {
     setExcludeAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
@@ -89,6 +109,62 @@ export default function Search() {
         </span>
       </div>
 
+      <div className="advanced-filters">
+        <label className="hint">
+          Sort
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+            <option value="newest">Newest</option>
+            <option value="rating">Top rated</option>
+            <option value="price">Price: low to high</option>
+          </select>
+        </label>
+
+        {cuisineOptions.length > 0 && (
+          <label className="hint">
+            Cuisine
+            <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}>
+              <option value="">All</option>
+              {cuisineOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {categoryOptions.length > 0 && (
+          <label className="hint">
+            Category
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">All</option>
+              {categoryOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <div className="rating-filter">
+          <span className="hint">Minimum rating</span>
+          <div className="rating-filter-stars">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="star-btn"
+                aria-label={`${n} stars and up`}
+                onClick={() => setMinRating(minRating === n ? 0 : n)}
+              >
+                {n <= minRating ? '★' : '☆'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {allergenOptions.length > 0 && (
         <div className="allergen-filter">
           <p className="hint">Exclude listings containing:</p>
@@ -125,8 +201,13 @@ export default function Search() {
                 <h3>{l.title}</h3>
                 <p className="muted">
                   by <Link to={`/chefs/${l.chef_user_id}`}>{l.chef_name}</Link>
+                  {l.chef_rating != null && ` · ★ ${Number(l.chef_rating).toFixed(1)}`}
                 </p>
+                {l.cuisine && <p className="muted">{l.cuisine}</p>}
                 {l.description && <p className="listing-desc">{l.description}</p>}
+                {l.rate_per_head_cents != null && (
+                  <p className="listing-price">${(l.rate_per_head_cents / 100).toFixed(2)} / person</p>
+                )}
 
                 {user ? (
                   bookingFor === l.id ? (

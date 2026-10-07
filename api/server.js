@@ -184,9 +184,17 @@ app.delete('/api/me/videos/:id', requireAuth, async (req, res) => {
 
 export const ALLERGENS = ['gluten', 'dairy', 'nuts', 'shellfish', 'eggs', 'soy']
 
+const RATING_SUBQUERY = `(
+  SELECT AVG(r.rating) FROM reviews r
+  JOIN bookings b ON b.id = r.booking_id
+  JOIN listings l2 ON l2.id = b.listing_id
+  WHERE l2.chef_id = l.chef_id
+)`
+
 app.get('/api/listings', async (req, res) => {
-  const { mode, tag, excludeAllergen } = req.query
-  let sql = `SELECT l.*, u.name AS chef_name, u.id AS chef_user_id, cp.lat AS chef_lat, cp.lng AS chef_lng
+  const { mode, tag, excludeAllergen, cuisine, category, minRating, sort } = req.query
+  let sql = `SELECT l.*, u.name AS chef_name, u.id AS chef_user_id, cp.lat AS chef_lat, cp.lng AS chef_lng,
+             ${RATING_SUBQUERY} AS chef_rating
              FROM listings l
              JOIN chef_profiles cp ON cp.id = l.chef_id
              JOIN users u ON u.id = cp.user_id WHERE 1=1`
@@ -199,12 +207,30 @@ app.get('/api/listings', async (req, res) => {
     sql += ' AND (l.tags LIKE ? OR l.keywords LIKE ? OR l.cuisine LIKE ?)'
     params.push(`%${tag}%`, `%${tag}%`, `%${tag}%`)
   }
+  if (cuisine) {
+    sql += ' AND l.cuisine = ?'
+    params.push(cuisine)
+  }
+  if (category) {
+    sql += ' AND l.category = ?'
+    params.push(category)
+  }
   const excluded = [].concat(excludeAllergen || []).filter(Boolean)
   for (const allergen of excluded) {
     sql += ' AND (l.allergens IS NULL OR l.allergens NOT LIKE ?)'
     params.push(`%${allergen}%`)
   }
-  sql += ' ORDER BY l.created_at DESC'
+  if (minRating) {
+    sql += ` AND COALESCE(${RATING_SUBQUERY}, 0) >= ?`
+    params.push(Number(minRating))
+  }
+  if (sort === 'rating') {
+    sql += ' ORDER BY chef_rating IS NULL, chef_rating DESC'
+  } else if (sort === 'price') {
+    sql += ' ORDER BY l.rate_per_head_cents IS NULL, l.rate_per_head_cents ASC'
+  } else {
+    sql += ' ORDER BY l.created_at DESC'
+  }
   res.json(await all(sql, params))
 })
 

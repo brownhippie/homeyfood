@@ -324,6 +324,42 @@ html, body {
   margin-bottom: 8px;
 }
 
+.advanced-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.advanced-filters label.hint {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.advanced-filters select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.rating-filter-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  color: var(--orange);
+  padding: 0;
+  line-height: 1;
+}
+
 .booking-form label.hint {
   display: flex;
   flex-direction: column;
@@ -412,6 +448,11 @@ html, body {
 .listing-desc {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.listing-price {
+  font-weight: 700;
+  margin: 0;
 }
 
 .btn-block {
