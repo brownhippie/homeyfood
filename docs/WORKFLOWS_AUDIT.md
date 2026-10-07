@@ -58,6 +58,43 @@ impact" at the bottom.
   generic filter panel. The rebuild's search page has no allergy filtering
   at all yet.
 
+## listingsdeatils — NOT actually empty (re-audited)
+
+The first pass called this page "empty/unbuilt" because only "Group B" showed
+in the collapsed Layers tree. Re-opened it directly and it is in fact the
+real, most complete listing-detail/creation form in the whole app — richer
+than `Pop UP Fire`'s version:
+
+- Title, Category Type, Cuisine Type
+- Serving Time: From / To (time range, not a single field)
+- Rate per Serving, Number of Serving
+- **Eat In / Take Out / Delivery — independent numeric quantities** (each
+  shown as "00"), meaning one dish can be offered across all three modes at
+  once with different availability per mode, not a single mode select
+- A file upload for a food photo
+- Description of the Food, Keyword Tagged
+- **Portion Size**
+- **Allergy precautions** (matches the allergens field already built)
+- **Dietary Preference**
+- **Spice Level**
+- **Dish Preparation information**
+- **Packaging Preference**
+
+Implemented: portion size, dietary preference, spice level, dish prep info,
+packaging preference, and the three independent eat-in/take-out/delivery
+quantity fields (search now matches a listing under a mode if either its
+primary `mode` matches or that mode's quantity is > 0). **Not implemented**:
+the photo upload — that needs real file storage (Cloudinary, per
+SETUP_PLAN.md) which isn't wired up yet; `photo_url` stays a plain URL field
+until that's set up.
+
+## ai_user_profile_2 — re-audited, nothing new
+
+Its only overlay is "FloatingGroup Mobile Menu," a generic mobile nav
+duplicate of the page's top bar (Notifications, mode filters, Edit Profile).
+No new fields. The Posts/Ratings & Reviews pattern found in the first pass
+still stands as the useful takeaway from this page.
+
 ## search_page overlays (re-audited — NOT a duplicate)
 
 Initially assumed `search_page`'s "Popup Advanced Filter" (singular) was the

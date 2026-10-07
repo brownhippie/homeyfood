@@ -14,6 +14,14 @@ export default function ChefDashboard() {
   const [capacity, setCapacity] = useState('')
   const [ratePerHead, setRatePerHead] = useState('')
   const [continuingDays, setContinuingDays] = useState('')
+  const [portionSize, setPortionSize] = useState('')
+  const [dietaryPreference, setDietaryPreference] = useState('')
+  const [spiceLevel, setSpiceLevel] = useState('')
+  const [dishPrepInfo, setDishPrepInfo] = useState('')
+  const [packagingPreference, setPackagingPreference] = useState('')
+  const [eatInQty, setEatInQty] = useState('')
+  const [takeOutQty, setTakeOutQty] = useState('')
+  const [deliveryQty, setDeliveryQty] = useState('')
   const [allergens, setAllergens] = useState<string[]>([])
   const [allergenOptions, setAllergenOptions] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
@@ -85,6 +93,14 @@ export default function ChefDashboard() {
         ratePerHeadCents: ratePerHead ? Math.round(Number(ratePerHead) * 100) : undefined,
         continuingDays: continuingDays ? Number(continuingDays) : undefined,
         allergens,
+        portionSize,
+        dietaryPreference,
+        spiceLevel,
+        dishPrepInfo,
+        packagingPreference,
+        eatInQty: eatInQty ? Number(eatInQty) : undefined,
+        takeOutQty: takeOutQty ? Number(takeOutQty) : undefined,
+        deliveryQty: deliveryQty ? Number(deliveryQty) : undefined,
       })
       setMessage('Listing created.')
       setTitle('')
@@ -97,6 +113,14 @@ export default function ChefDashboard() {
       setRatePerHead('')
       setContinuingDays('')
       setAllergens([])
+      setPortionSize('')
+      setDietaryPreference('')
+      setSpiceLevel('')
+      setDishPrepInfo('')
+      setPackagingPreference('')
+      setEatInQty('')
+      setTakeOutQty('')
+      setDeliveryQty('')
     } catch (err) {
       setMessage((err as Error).message)
     }
@@ -294,6 +318,45 @@ export default function ChefDashboard() {
           Continuing days
           <input type="number" min="1" value={continuingDays} onChange={(e) => setContinuingDays(e.target.value)} />
         </label>
+        <label>
+          Portion size
+          <input value={portionSize} onChange={(e) => setPortionSize(e.target.value)} placeholder="e.g. Large" />
+        </label>
+        <label>
+          Dietary preference
+          <input
+            value={dietaryPreference}
+            onChange={(e) => setDietaryPreference(e.target.value)}
+            placeholder="e.g. Vegetarian, Vegan, Halal"
+          />
+        </label>
+        <label>
+          Spice level
+          <input value={spiceLevel} onChange={(e) => setSpiceLevel(e.target.value)} placeholder="e.g. Mild, Medium, Hot" />
+        </label>
+        <label>
+          Dish preparation info
+          <textarea value={dishPrepInfo} onChange={(e) => setDishPrepInfo(e.target.value)} />
+        </label>
+        <label>
+          Packaging preference
+          <input value={packagingPreference} onChange={(e) => setPackagingPreference(e.target.value)} />
+        </label>
+        <div className="qty-row">
+          <label>
+            Eat in qty
+            <input type="number" min="0" value={eatInQty} onChange={(e) => setEatInQty(e.target.value)} />
+          </label>
+          <label>
+            Take out qty
+            <input type="number" min="0" value={takeOutQty} onChange={(e) => setTakeOutQty(e.target.value)} />
+          </label>
+          <label>
+            Delivery qty
+            <input type="number" min="0" value={deliveryQty} onChange={(e) => setDeliveryQty(e.target.value)} />
+          </label>
+        </div>
+        <p className="hint">Mode above sets the primary listing; quantities let a dish be offered across multiple modes at once.</p>
         <div>
           <p className="hint">Allergens present</p>
           <div className="allergen-grid">

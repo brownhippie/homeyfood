@@ -200,7 +200,8 @@ app.get('/api/listings', async (req, res) => {
              JOIN users u ON u.id = cp.user_id WHERE 1=1`
   const params = []
   if (mode) {
-    sql += ' AND l.mode = ?'
+    const qtyCol = mode === 'eat_in' ? 'eat_in_qty' : mode === 'delivery' ? 'delivery_qty' : 'take_out_qty'
+    sql += ` AND (l.mode = ? OR l.${qtyCol} > 0)`
     params.push(mode)
   }
   if (tag) {
@@ -251,14 +252,24 @@ app.post('/api/listings', requireAuth, async (req, res) => {
     ratePerHeadCents,
     continuingDays,
     allergens,
+    portionSize,
+    dietaryPreference,
+    spiceLevel,
+    dishPrepInfo,
+    packagingPreference,
+    eatInQty,
+    takeOutQty,
+    deliveryQty,
   } = req.body || {}
   if (!title) return res.status(400).json({ error: 'title is required' })
   const allergenList = Array.isArray(allergens) ? allergens.filter((a) => ALLERGENS.includes(a)) : []
   const { id } = await run(
     `INSERT INTO listings (
        chef_id, title, description, tags, mode, photo_url,
-       keywords, cuisine, category, serving_time, capacity, rate_per_head_cents, continuing_days, allergens
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       keywords, cuisine, category, serving_time, capacity, rate_per_head_cents, continuing_days, allergens,
+       portion_size, dietary_preference, spice_level, dish_prep_info, packaging_preference,
+       eat_in_qty, take_out_qty, delivery_qty
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       chefProfile.id,
       title,
@@ -274,6 +285,14 @@ app.post('/api/listings', requireAuth, async (req, res) => {
       ratePerHeadCents || null,
       continuingDays || null,
       allergenList.join(','),
+      portionSize || null,
+      dietaryPreference || null,
+      spiceLevel || null,
+      dishPrepInfo || null,
+      packagingPreference || null,
+      eatInQty || 0,
+      takeOutQty || 0,
+      deliveryQty || 0,
     ]
   )
   res.status(201).json(await get('SELECT * FROM listings WHERE id = ?', [id]))

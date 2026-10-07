@@ -86,6 +86,14 @@ export async function initDb() {
     rate_per_head_cents INTEGER,
     continuing_days INTEGER,
     allergens TEXT,
+    portion_size TEXT,
+    dietary_preference TEXT,
+    spice_level TEXT,
+    dish_prep_info TEXT,
+    packaging_preference TEXT,
+    eat_in_qty INTEGER NOT NULL DEFAULT 0,
+    take_out_qty INTEGER NOT NULL DEFAULT 0,
+    delivery_qty INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
   for (const [col, def] of [
@@ -97,6 +105,14 @@ export async function initDb() {
     ['rate_per_head_cents', 'INTEGER'],
     ['continuing_days', 'INTEGER'],
     ['allergens', 'TEXT'],
+    ['portion_size', 'TEXT'],
+    ['dietary_preference', 'TEXT'],
+    ['spice_level', 'TEXT'],
+    ['dish_prep_info', 'TEXT'],
+    ['packaging_preference', 'TEXT'],
+    ['eat_in_qty', 'INTEGER NOT NULL DEFAULT 0'],
+    ['take_out_qty', 'INTEGER NOT NULL DEFAULT 0'],
+    ['delivery_qty', 'INTEGER NOT NULL DEFAULT 0'],
   ]) {
     await addColumnIfMissing('listings', col, def)
   }
