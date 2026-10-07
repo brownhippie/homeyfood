@@ -58,13 +58,29 @@ impact" at the bottom.
   generic filter panel. The rebuild's search page has no allergy filtering
   at all yet.
 
-## Not yet opened
+## search_page overlays (re-audited — NOT a duplicate)
 
-`search_page`'s own "Popup Advanced Filter" (singular) and `live_stream`'s
-confirmation popup weren't re-opened individually — both are almost
-certainly the same patterns as chef-landing_page's versions above (shared
-popup elements reused across pages is standard Bubble practice), so treating
-them as duplicates rather than re-auditing was a deliberate time-saving call.
+Initially assumed `search_page`'s "Popup Advanced Filter" (singular) was the
+same popup as chef-landing_page's "Popup Advanced Filters" (allergy toggles).
+That assumption was wrong — re-opened it directly and it's a different,
+separate filter panel:
+
+- Eat In / Delivery / Take Out checkboxes (duplicating the top-level mode
+  filter, inside the popup too)
+- **Cuisines**, **Categories**, **Availability** — three tag-style filter
+  pill groups (not the generic "Tag 1" placeholder it first appeared to be
+  from the stale accessibility-tree text; confirmed from the rendered
+  canvas)
+- **Rating** — a minimum star-rating filter (5-star widget)
+- The page itself also has a **Sort** control and three "Tag 1" labels
+  outside the popup (Cuisines/Categories/Availability again, as the
+  top-level filter bar)
+
+This means allergy filtering and cuisine/category/rating filtering are two
+separate, parallel filter systems in the original app, not one combined
+panel. `live_stream`'s confirmation popup was not re-opened individually —
+that one really is a generic confirm/cancel pattern matching the others
+already audited, so treating it as a duplicate stands.
 
 ## Rebuild impact — what this changes
 
