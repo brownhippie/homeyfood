@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../AuthContext'
 import MapView from '../MapView'
@@ -7,9 +7,18 @@ import MapView from '../MapView'
 type Mode = '' | 'eat_in' | 'delivery' | 'take_out'
 type View = 'list' | 'map'
 
+const CARD_COLORS = ['#e8622c', '#2c7be8', '#8b4fe8', '#2ca882', '#e84f8b', '#e8a62c']
+
+function colorFor(id: number) {
+  return CARD_COLORS[id % CARD_COLORS.length]
+}
+
 export default function Search() {
   const { user } = useAuth()
-  const [mode, setMode] = useState<Mode>('')
+  const [searchParams] = useSearchParams()
+  const initialMode = (searchParams.get('mode') as Mode) || ''
+  const query = searchParams.get('q') || ''
+  const [mode, setMode] = useState<Mode>(initialMode)
   const [view, setView] = useState<View>('list')
   const [listings, setListings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,6 +36,14 @@ export default function Search() {
       .finally(() => setLoading(false))
   }, [mode])
 
+  const visibleListings = useMemo(() => {
+    if (!query) return listings
+    const q = query.toLowerCase()
+    return listings.filter(
+      (l) => l.title?.toLowerCase().includes(q) || l.description?.toLowerCase().includes(q)
+    )
+  }, [listings, query])
+
   async function submitBooking(listingId: number, listingMode: string) {
     setBookingMessage(null)
     try {
@@ -41,7 +58,7 @@ export default function Search() {
 
   return (
     <div className="page">
-      <h1>Find chefs near you</h1>
+      <h1>{query ? `Results for "${query}"` : 'Find chefs near you'}</h1>
       <div className="filter-bar">
         {(['', 'eat_in', 'delivery', 'take_out'] as Mode[]).map((m) => (
           <button
@@ -64,50 +81,54 @@ export default function Search() {
 
       {loading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
-      {!loading && !error && listings.length === 0 && <p>No listings yet.</p>}
-      {bookingMessage && <p>{bookingMessage}</p>}
+      {!loading && !error && visibleListings.length === 0 && <p>No listings yet.</p>}
+      {bookingMessage && <p className="booking-toast">{bookingMessage}</p>}
 
-      {view === 'map' && !loading && !error && <MapView listings={listings} />}
+      {view === 'map' && !loading && !error && <MapView listings={visibleListings} />}
 
       {view === 'list' && (
-      <div className="listing-grid">
-        {listings.map((l) => (
-          <div className="listing-card" key={l.id}>
-            <h3>{l.title}</h3>
-            <p className="muted">
-              by <Link to={`/chefs/${l.chef_user_id}`}>{l.chef_name}</Link>
-            </p>
-            {l.description && <p>{l.description}</p>}
-            <span className="chip">{l.mode}</span>
+        <div className="listing-grid">
+          {visibleListings.map((l) => (
+            <div className="listing-card" key={l.id}>
+              <div className="listing-thumb" style={{ background: `linear-gradient(145deg, ${colorFor(l.id)}, #1a1a1a)` }}>
+                <span className="mode-badge">{l.mode === 'eat_in' ? 'Eat in' : l.mode === 'delivery' ? 'Delivery' : 'Take Out'}</span>
+              </div>
+              <div className="listing-card-body">
+                <h3>{l.title}</h3>
+                <p className="muted">
+                  by <Link to={`/chefs/${l.chef_user_id}`}>{l.chef_name}</Link>
+                </p>
+                {l.description && <p className="listing-desc">{l.description}</p>}
 
-            {user ? (
-              bookingFor === l.id ? (
-                <div className="booking-form">
-                  <input
-                    placeholder="Preferred time (e.g. Sat 7pm)"
-                    value={timeSlot}
-                    onChange={(e) => setTimeSlot(e.target.value)}
-                  />
-                  <div className="booking-form-actions">
-                    <button className="btn btn-primary" onClick={() => submitBooking(l.id, l.mode)}>
-                      Confirm booking
+                {user ? (
+                  bookingFor === l.id ? (
+                    <div className="booking-form">
+                      <input
+                        placeholder="Preferred time (e.g. Sat 7pm)"
+                        value={timeSlot}
+                        onChange={(e) => setTimeSlot(e.target.value)}
+                      />
+                      <div className="booking-form-actions">
+                        <button className="btn btn-primary" onClick={() => submitBooking(l.id, l.mode)}>
+                          Confirm booking
+                        </button>
+                        <button className="btn btn-ghost" onClick={() => setBookingFor(null)}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button className="btn btn-primary btn-block" onClick={() => setBookingFor(l.id)}>
+                      Book
                     </button>
-                    <button className="btn btn-ghost" onClick={() => setBookingFor(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button className="btn btn-primary" onClick={() => setBookingFor(l.id)}>
-                  Book
-                </button>
-              )
-            ) : (
-              <p className="hint">Log in to book this listing.</p>
-            )}
-          </div>
-        ))}
-      </div>
+                  )
+                ) : (
+                  <p className="hint">Log in to book this listing.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
