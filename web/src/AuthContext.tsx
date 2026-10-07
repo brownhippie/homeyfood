@@ -12,7 +12,15 @@ interface AuthState {
     password: string,
     role: 'guest' | 'chef',
     confirmPassword?: string,
-    governmentId?: string
+    governmentId?: string,
+    address?: {
+      aptSuite?: string
+      streetAddress?: string
+      cityAddress?: string
+      stateSubdivision?: string
+      zipCodeAddress?: string
+      country?: string
+    }
   ) => Promise<void>
   logout: () => void
   refresh: () => Promise<void>
@@ -56,9 +64,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     role: 'guest' | 'chef',
     confirmPassword?: string,
-    governmentId?: string
+    governmentId?: string,
+    address?: {
+      aptSuite?: string
+      streetAddress?: string
+      cityAddress?: string
+      stateSubdivision?: string
+      zipCodeAddress?: string
+      country?: string
+    }
   ) => {
-    const { token, user } = await api.signup({ name, email, password, confirmPassword, role, governmentId })
+    const { token, user } = await api.signup({
+      name,
+      email,
+      password,
+      confirmPassword,
+      role,
+      governmentId,
+      ...address,
+    })
     setToken(token)
     setUser(user)
   }

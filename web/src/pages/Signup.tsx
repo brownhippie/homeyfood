@@ -11,6 +11,12 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [governmentId, setGovernmentId] = useState('')
   const [role, setRole] = useState<'guest' | 'chef'>('guest')
+  const [aptSuite, setAptSuite] = useState('')
+  const [streetAddress, setStreetAddress] = useState('')
+  const [cityAddress, setCityAddress] = useState('')
+  const [stateSubdivision, setStateSubdivision] = useState('')
+  const [zipCodeAddress, setZipCodeAddress] = useState('')
+  const [country, setCountry] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
@@ -21,7 +27,14 @@ export default function Signup() {
       return
     }
     try {
-      await signup(name, email, password, role, confirmPassword, role === 'chef' ? governmentId : undefined)
+      await signup(name, email, password, role, confirmPassword, role === 'chef' ? governmentId : undefined, {
+        aptSuite,
+        streetAddress,
+        cityAddress,
+        stateSubdivision,
+        zipCodeAddress,
+        country,
+      })
       navigate('/')
     } catch (err) {
       setError((err as Error).message)
@@ -86,6 +99,35 @@ export default function Signup() {
           </label>
         )}
         <p className="hint">You can enable the other role later from your profile.</p>
+
+        <p className="hint">Address (optional)</p>
+        <label>
+          Street address
+          <input value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} />
+        </label>
+        <label>
+          Apt / Suite
+          <input value={aptSuite} onChange={(e) => setAptSuite(e.target.value)} />
+        </label>
+        <label>
+          City
+          <input value={cityAddress} onChange={(e) => setCityAddress(e.target.value)} />
+        </label>
+        <div className="qty-row">
+          <label>
+            State / Subdivision
+            <input value={stateSubdivision} onChange={(e) => setStateSubdivision(e.target.value)} />
+          </label>
+          <label>
+            Zip code
+            <input value={zipCodeAddress} onChange={(e) => setZipCodeAddress(e.target.value)} />
+          </label>
+        </div>
+        <label>
+          Country
+          <input value={country} onChange={(e) => setCountry(e.target.value)} />
+        </label>
+
         {error && <p className="error">{error}</p>}
         <button className="btn btn-primary" type="submit">
           Sign up

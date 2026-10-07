@@ -24,6 +24,15 @@ async function request(path: string, options: RequestInit = {}) {
   return data
 }
 
+export interface Address {
+  aptSuite: string | null
+  streetAddress: string | null
+  cityAddress: string | null
+  stateSubdivision: string | null
+  zipCodeAddress: string | null
+  country: string | null
+}
+
 export interface User {
   id: number
   name: string
@@ -32,6 +41,7 @@ export interface User {
   isChef: boolean
   activeRole: 'guest' | 'chef'
   avatarUrl: string | null
+  address: Address
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'declined' | 'cancelled' | 'completed'
@@ -91,6 +101,12 @@ export const api = {
     confirmPassword?: string
     role?: 'guest' | 'chef'
     governmentId?: string
+    aptSuite?: string
+    streetAddress?: string
+    cityAddress?: string
+    stateSubdivision?: string
+    zipCodeAddress?: string
+    country?: string
   }) =>
     request('/auth/signup', { method: 'POST', body: JSON.stringify(body) }) as Promise<{ token: string; user: User }>,
   login: (body: { email: string; password: string }) =>
@@ -107,6 +123,14 @@ export const api = {
     delivery?: boolean
     takeOut?: boolean
   }) => request('/me/chef-profile', { method: 'PUT', body: JSON.stringify(body) }),
+  updateAddress: (body: {
+    aptSuite?: string
+    streetAddress?: string
+    cityAddress?: string
+    stateSubdivision?: string
+    zipCodeAddress?: string
+    country?: string
+  }) => request('/me/address', { method: 'PUT', body: JSON.stringify(body) }) as Promise<User>,
   listings: (params?: {
     mode?: string
     tag?: string

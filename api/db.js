@@ -52,9 +52,25 @@ export async function initDb() {
     active_role TEXT NOT NULL DEFAULT 'guest',
     avatar_url TEXT,
     government_id TEXT,
+    apt_suite TEXT,
+    street_address TEXT,
+    city_address TEXT,
+    state_subdivision TEXT,
+    zip_code_address TEXT,
+    country TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
-  await addColumnIfMissing('users', 'government_id', 'TEXT')
+  for (const [col, def] of [
+    ['government_id', 'TEXT'],
+    ['apt_suite', 'TEXT'],
+    ['street_address', 'TEXT'],
+    ['city_address', 'TEXT'],
+    ['state_subdivision', 'TEXT'],
+    ['zip_code_address', 'TEXT'],
+    ['country', 'TEXT'],
+  ]) {
+    await addColumnIfMissing('users', col, def)
+  }
 
   await run(`CREATE TABLE IF NOT EXISTS chef_profiles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -24,13 +24,34 @@ function publicUser(u) {
     isChef: !!u.is_chef,
     activeRole: u.active_role,
     avatarUrl: u.avatar_url,
+    address: {
+      aptSuite: u.apt_suite,
+      streetAddress: u.street_address,
+      cityAddress: u.city_address,
+      stateSubdivision: u.state_subdivision,
+      zipCodeAddress: u.zip_code_address,
+      country: u.country,
+    },
   }
 }
 
 // --- Auth ---
 
 app.post('/api/auth/signup', async (req, res) => {
-  const { name, email, password, confirmPassword, role, governmentId } = req.body || {}
+  const {
+    name,
+    email,
+    password,
+    confirmPassword,
+    role,
+    governmentId,
+    aptSuite,
+    streetAddress,
+    cityAddress,
+    stateSubdivision,
+    zipCodeAddress,
+    country,
+  } = req.body || {}
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'name, email, password are required' })
   }
@@ -46,9 +67,25 @@ app.post('/api/auth/signup', async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10)
   const { id } = await run(
-    `INSERT INTO users (name, email, password_hash, is_guest, is_chef, active_role, government_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [name, email, passwordHash, isChef ? 0 : 1, isChef ? 1 : 0, isChef ? 'chef' : 'guest', governmentId || null]
+    `INSERT INTO users (
+       name, email, password_hash, is_guest, is_chef, active_role, government_id,
+       apt_suite, street_address, city_address, state_subdivision, zip_code_address, country
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      name,
+      email,
+      passwordHash,
+      isChef ? 0 : 1,
+      isChef ? 1 : 0,
+      isChef ? 'chef' : 'guest',
+      governmentId || null,
+      aptSuite || null,
+      streetAddress || null,
+      cityAddress || null,
+      stateSubdivision || null,
+      zipCodeAddress || null,
+      country || null,
+    ]
   )
   if (isChef) {
     await run('INSERT INTO chef_profiles (user_id) VALUES (?)', [id])
@@ -69,6 +106,25 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/me', requireAuth, async (req, res) => {
   const user = await get('SELECT * FROM users WHERE id = ?', [req.user.id])
   if (!user) return res.status(404).json({ error: 'User not found' })
+  res.json(publicUser(user))
+})
+
+app.put('/api/me/address', requireAuth, async (req, res) => {
+  const { aptSuite, streetAddress, cityAddress, stateSubdivision, zipCodeAddress, country } = req.body || {}
+  await run(
+    `UPDATE users SET apt_suite = ?, street_address = ?, city_address = ?,
+     state_subdivision = ?, zip_code_address = ?, country = ? WHERE id = ?`,
+    [
+      aptSuite || null,
+      streetAddress || null,
+      cityAddress || null,
+      stateSubdivision || null,
+      zipCodeAddress || null,
+      country || null,
+      req.user.id,
+    ]
+  )
+  const user = await get('SELECT * FROM users WHERE id = ?', [req.user.id])
   res.json(publicUser(user))
 })
 

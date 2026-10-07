@@ -58,6 +58,25 @@ impact" at the bottom.
   generic filter panel. The rebuild's search page has no allergy filtering
   at all yet.
 
+## User data type (re-audited, 2nd pass)
+
+Also checked the real **User** data type directly. Two findings:
+
+1. **User Government ID is a file-upload field** (with an Upload button) in
+   the original app, not a text field. The rebuild keeps it as text for
+   now — real file upload needs Cloudinary (not set up yet), same
+   constraint as the deferred photo upload.
+2. **Users have a full address**: Apt/Suite, Street Address, City Address,
+   State/Subdivision, Zip Code Address, Country — not just chef lat/lng for
+   map discovery. **Implemented**: address fields added to signup (optional)
+   and a `PUT /api/me/address` endpoint for later editing, available to
+   both guests and chefs (useful for delivery, not just chef location).
+
+Confirmed via this pass: exactly 5 data types total exist in the app
+(Events, LiveStreamSession, Meals, StreamComments, User) — nothing missed.
+`ai_dashboard_1` introduces no custom data type of its own, confirming it's
+unrelated static template content as already concluded.
+
 ## The real Data Types (Data tab, not the popups)
 
 Checked the Bubble app's actual database schema (Data tab → Data Types) for
