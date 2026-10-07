@@ -376,18 +376,17 @@ app.post('/api/bookings', requireAuth, async (req, res) => {
 })
 
 app.get('/api/me/bookings', requireAuth, async (req, res) => {
-  res.json(
-    await all(
-      `SELECT b.*, l.title, u.name AS chef_name,
-              EXISTS(SELECT 1 FROM reviews r WHERE r.booking_id = b.id) AS has_review
-       FROM bookings b
-       JOIN listings l ON l.id = b.listing_id
-       JOIN chef_profiles cp ON cp.id = l.chef_id
-       JOIN users u ON u.id = cp.user_id
-       WHERE b.guest_id = ? ORDER BY b.created_at DESC`,
-      [req.user.id]
-    )
+  const rows = await all(
+    `SELECT b.*, l.title, u.name AS chef_name,
+            EXISTS(SELECT 1 FROM reviews r WHERE r.booking_id = b.id) AS has_review
+     FROM bookings b
+     JOIN listings l ON l.id = b.listing_id
+     JOIN chef_profiles cp ON cp.id = l.chef_id
+     JOIN users u ON u.id = cp.user_id
+     WHERE b.guest_id = ? ORDER BY b.created_at DESC`,
+    [req.user.id]
   )
+  res.json(rows.map((r) => ({ ...r, has_review: !!r.has_review })))
 })
 
 // Bookings received on the current user's listings (chef side)

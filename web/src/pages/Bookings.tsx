@@ -67,7 +67,7 @@ export default function Bookings() {
                 with {b.chef_name} · {b.mode} {b.time_slot ? `· ${b.time_slot}` : ''}
               </p>
 
-              {b.status === 'completed' && !b.has_review && (
+              {b.status === 'completed' && !Boolean(b.has_review) && (
                 <>
                   {reviewFor === b.id ? (
                     <div className="booking-form" style={{ marginTop: 10 }}>
@@ -103,7 +103,7 @@ export default function Bookings() {
                   )}
                 </>
               )}
-              {b.status === 'completed' && b.has_review && <p className="hint">You reviewed this booking.</p>}
+              {b.status === 'completed' && Boolean(b.has_review) && <p className="hint">You reviewed this booking.</p>}
             </div>
             <div className="booking-row-right">
               <span className={`status status-${b.status}`}>{b.status}</span>
