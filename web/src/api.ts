@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'homeyfood_token'
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
@@ -17,7 +18,7 @@ async function request(path: string, options: RequestInit = {}) {
   }
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const res = await fetch(`/api${path}`, { ...options, headers })
+  const res = await fetch(`${API_BASE}/api${path}`, { ...options, headers })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
   return data
