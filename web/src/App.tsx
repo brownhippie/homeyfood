@@ -1,4 +1,5 @@
-import { Routes, Route, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './AuthContext'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -10,12 +11,29 @@ import ChefProfile from './pages/ChefProfile'
 
 function Nav() {
   const { user, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname])
+
   return (
     <nav className="nav">
-      <Link className="brand" to="/">
+      <Link className="brand" to="/" onClick={() => setOpen(false)}>
         HomeyFood
       </Link>
-      <div className="nav-links">
+      <button
+        className="nav-toggle"
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      <div className={`nav-links ${open ? 'nav-links-open' : ''}`}>
         <Link to="/search">Find Chefs</Link>
         <Link to="/chef">Chef dashboard</Link>
         {user && <Link to="/bookings">My Bookings</Link>}
