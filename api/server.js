@@ -30,19 +30,25 @@ function publicUser(u) {
 // --- Auth ---
 
 app.post('/api/auth/signup', async (req, res) => {
-  const { name, email, password, role } = req.body || {}
+  const { name, email, password, confirmPassword, role, governmentId } = req.body || {}
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'name, email, password are required' })
+  }
+  if (confirmPassword !== undefined && password !== confirmPassword) {
+    return res.status(400).json({ error: 'Passwords do not match' })
+  }
+  const isChef = role === 'chef'
+  if (isChef && !governmentId) {
+    return res.status(400).json({ error: 'A government ID is required to sign up as a chef' })
   }
   const existing = await get('SELECT id FROM users WHERE email = ?', [email])
   if (existing) return res.status(409).json({ error: 'Email already registered' })
 
   const passwordHash = await bcrypt.hash(password, 10)
-  const isChef = role === 'chef'
   const { id } = await run(
-    `INSERT INTO users (name, email, password_hash, is_guest, is_chef, active_role)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [name, email, passwordHash, isChef ? 0 : 1, isChef ? 1 : 0, isChef ? 'chef' : 'guest']
+    `INSERT INTO users (name, email, password_hash, is_guest, is_chef, active_role, government_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [name, email, passwordHash, isChef ? 0 : 1, isChef ? 1 : 0, isChef ? 'chef' : 'guest', governmentId || null]
   )
   if (isChef) {
     await run('INSERT INTO chef_profiles (user_id) VALUES (?)', [id])
@@ -176,8 +182,10 @@ app.delete('/api/me/videos/:id', requireAuth, async (req, res) => {
 
 // --- Listings / search ---
 
+export const ALLERGENS = ['gluten', 'dairy', 'nuts', 'shellfish', 'eggs', 'soy']
+
 app.get('/api/listings', async (req, res) => {
-  const { mode, tag } = req.query
+  const { mode, tag, excludeAllergen } = req.query
   let sql = `SELECT l.*, u.name AS chef_name, u.id AS chef_user_id, cp.lat AS chef_lat, cp.lng AS chef_lng
              FROM listings l
              JOIN chef_profiles cp ON cp.id = l.chef_id
@@ -188,8 +196,13 @@ app.get('/api/listings', async (req, res) => {
     params.push(mode)
   }
   if (tag) {
-    sql += ' AND l.tags LIKE ?'
-    params.push(`%${tag}%`)
+    sql += ' AND (l.tags LIKE ? OR l.keywords LIKE ? OR l.cuisine LIKE ?)'
+    params.push(`%${tag}%`, `%${tag}%`, `%${tag}%`)
+  }
+  const excluded = [].concat(excludeAllergen || []).filter(Boolean)
+  for (const allergen of excluded) {
+    sql += ' AND (l.allergens IS NULL OR l.allergens NOT LIKE ?)'
+    params.push(`%${allergen}%`)
   }
   sql += ' ORDER BY l.created_at DESC'
   res.json(await all(sql, params))
@@ -198,15 +211,49 @@ app.get('/api/listings', async (req, res) => {
 app.post('/api/listings', requireAuth, async (req, res) => {
   const chefProfile = await get('SELECT id FROM chef_profiles WHERE user_id = ?', [req.user.id])
   if (!chefProfile) return res.status(403).json({ error: 'Chef profile required' })
-  const { title, description, priceCents, tags, mode, photoUrl } = req.body || {}
+  const {
+    title,
+    description,
+    tags,
+    mode,
+    photoUrl,
+    keywords,
+    cuisine,
+    category,
+    servingTime,
+    capacity,
+    ratePerHeadCents,
+    continuingDays,
+    allergens,
+  } = req.body || {}
   if (!title) return res.status(400).json({ error: 'title is required' })
+  const allergenList = Array.isArray(allergens) ? allergens.filter((a) => ALLERGENS.includes(a)) : []
   const { id } = await run(
-    `INSERT INTO listings (chef_id, title, description, price_cents, tags, mode, photo_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [chefProfile.id, title, description, priceCents || null, tags || '', mode || 'eat_in', photoUrl || null]
+    `INSERT INTO listings (
+       chef_id, title, description, tags, mode, photo_url,
+       keywords, cuisine, category, serving_time, capacity, rate_per_head_cents, continuing_days, allergens
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      chefProfile.id,
+      title,
+      description || null,
+      tags || '',
+      mode || 'eat_in',
+      photoUrl || null,
+      keywords || null,
+      cuisine || null,
+      category || null,
+      servingTime || null,
+      capacity || null,
+      ratePerHeadCents || null,
+      continuingDays || null,
+      allergenList.join(','),
+    ]
   )
   res.status(201).json(await get('SELECT * FROM listings WHERE id = ?', [id]))
 })
+
+app.get('/api/allergens', (req, res) => res.json(ALLERGENS))
 
 // --- Bookings ---
 

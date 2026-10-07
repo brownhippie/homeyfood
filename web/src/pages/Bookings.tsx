@@ -29,6 +29,7 @@ export default function Bookings() {
   if (!user) return <div className="page">Log in to see your bookings.</div>
 
   async function cancel(id: number) {
+    if (!window.confirm('Cancel this booking?')) return
     try {
       await api.updateBookingStatus(id, 'cancelled')
       load()

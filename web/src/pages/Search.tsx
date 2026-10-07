@@ -24,17 +24,27 @@ export default function Search() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [bookingFor, setBookingFor] = useState<number | null>(null)
-  const [timeSlot, setTimeSlot] = useState('')
+  const [bookingDate, setBookingDate] = useState('')
   const [bookingMessage, setBookingMessage] = useState<string | null>(null)
+  const [allergenOptions, setAllergenOptions] = useState<string[]>([])
+  const [excludeAllergens, setExcludeAllergens] = useState<string[]>([])
+
+  useEffect(() => {
+    api.allergens().then(setAllergenOptions).catch(() => {})
+  }, [])
 
   useEffect(() => {
     setLoading(true)
     api
-      .listings(mode ? { mode } : undefined)
+      .listings({ ...(mode ? { mode } : {}), excludeAllergen: excludeAllergens })
       .then(setListings)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [mode])
+  }, [mode, excludeAllergens])
+
+  function toggleExcludeAllergen(a: string) {
+    setExcludeAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
+  }
 
   const visibleListings = useMemo(() => {
     if (!query) return listings
@@ -47,10 +57,10 @@ export default function Search() {
   async function submitBooking(listingId: number, listingMode: string) {
     setBookingMessage(null)
     try {
-      await api.book({ listingId, timeSlot, mode: listingMode })
+      await api.book({ listingId, timeSlot: bookingDate, mode: listingMode })
       setBookingMessage('Booked! Check "My Bookings" to track it.')
       setBookingFor(null)
-      setTimeSlot('')
+      setBookingDate('')
     } catch (err) {
       setBookingMessage((err as Error).message)
     }
@@ -79,6 +89,24 @@ export default function Search() {
         </span>
       </div>
 
+      {allergenOptions.length > 0 && (
+        <div className="allergen-filter">
+          <p className="hint">Exclude listings containing:</p>
+          <div className="allergen-grid">
+            {allergenOptions.map((a) => (
+              <label key={a} className="allergen-chip">
+                <input
+                  type="checkbox"
+                  checked={excludeAllergens.includes(a)}
+                  onChange={() => toggleExcludeAllergen(a)}
+                />
+                {a}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
       {!loading && !error && visibleListings.length === 0 && <p>No listings yet.</p>}
@@ -103,11 +131,16 @@ export default function Search() {
                 {user ? (
                   bookingFor === l.id ? (
                     <div className="booking-form">
-                      <input
-                        placeholder="Preferred time (e.g. Sat 7pm)"
-                        value={timeSlot}
-                        onChange={(e) => setTimeSlot(e.target.value)}
-                      />
+                      <label className="hint">
+                        Choose a date
+                        <input
+                          type="date"
+                          min={new Date().toISOString().slice(0, 10)}
+                          value={bookingDate}
+                          onChange={(e) => setBookingDate(e.target.value)}
+                          required
+                        />
+                      </label>
                       <div className="booking-form-actions">
                         <button className="btn btn-primary" onClick={() => submitBooking(l.id, l.mode)}>
                           Confirm booking

@@ -301,6 +301,35 @@ html, body {
   font-size: 0.85rem;
 }
 
+.allergen-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.allergen-chip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.allergen-filter {
+  margin-bottom: 8px;
+}
+
+.booking-form label.hint {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .error {
   color: #c0392b;
 }

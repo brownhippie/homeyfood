@@ -7,6 +7,15 @@ export default function ChefDashboard() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [mode, setMode] = useState('eat_in')
+  const [keywords, setKeywords] = useState('')
+  const [cuisine, setCuisine] = useState('')
+  const [category, setCategory] = useState('')
+  const [servingTime, setServingTime] = useState('')
+  const [capacity, setCapacity] = useState('')
+  const [ratePerHead, setRatePerHead] = useState('')
+  const [continuingDays, setContinuingDays] = useState('')
+  const [allergens, setAllergens] = useState<string[]>([])
+  const [allergenOptions, setAllergenOptions] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [bookingsError, setBookingsError] = useState<string | null>(null)
@@ -44,6 +53,10 @@ export default function ChefDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
+  useEffect(() => {
+    api.allergens().then(setAllergenOptions).catch(() => {})
+  }, [])
+
   if (!user) return <div className="page">Log in to view your chef dashboard.</div>
 
   async function enableChef() {
@@ -51,20 +64,46 @@ export default function ChefDashboard() {
     await refresh()
   }
 
+  function toggleAllergen(a: string) {
+    setAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
+  }
+
   async function createListing(e: React.FormEvent) {
     e.preventDefault()
     setMessage(null)
+    if (!window.confirm('Submit this listing?')) return
     try {
-      await api.createListing({ title, description, mode })
+      await api.createListing({
+        title,
+        description,
+        mode,
+        keywords,
+        cuisine,
+        category,
+        servingTime,
+        capacity: capacity ? Number(capacity) : undefined,
+        ratePerHeadCents: ratePerHead ? Math.round(Number(ratePerHead) * 100) : undefined,
+        continuingDays: continuingDays ? Number(continuingDays) : undefined,
+        allergens,
+      })
       setMessage('Listing created.')
       setTitle('')
       setDescription('')
+      setKeywords('')
+      setCuisine('')
+      setCategory('')
+      setServingTime('')
+      setCapacity('')
+      setRatePerHead('')
+      setContinuingDays('')
+      setAllergens([])
     } catch (err) {
       setMessage((err as Error).message)
     }
   }
 
   async function respond(id: number, status: 'confirmed' | 'declined' | 'completed') {
+    if (status === 'declined' && !window.confirm('Decline this booking?')) return
     try {
       await api.updateBookingStatus(id, status)
       loadBookings()
@@ -219,6 +258,53 @@ export default function ChefDashboard() {
             <option value="take_out">Take Out</option>
           </select>
         </label>
+        <label>
+          Keywords
+          <input
+            value={keywords}
+            onChange={(e) => setKeywords(e.target.value)}
+            placeholder="e.g. spicy, vegetarian, family-style"
+          />
+        </label>
+        <label>
+          Cuisine
+          <input value={cuisine} onChange={(e) => setCuisine(e.target.value)} placeholder="e.g. Italian" />
+        </label>
+        <label>
+          Category
+          <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dinner" />
+        </label>
+        <label>
+          Serving time
+          <input
+            value={servingTime}
+            onChange={(e) => setServingTime(e.target.value)}
+            placeholder="e.g. 6:00 PM - 9:00 PM"
+          />
+        </label>
+        <label>
+          Number of people
+          <input type="number" min="1" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+        </label>
+        <label>
+          Rate per head ($)
+          <input type="number" min="0" step="0.01" value={ratePerHead} onChange={(e) => setRatePerHead(e.target.value)} />
+        </label>
+        <label>
+          Continuing days
+          <input type="number" min="1" value={continuingDays} onChange={(e) => setContinuingDays(e.target.value)} />
+        </label>
+        <div>
+          <p className="hint">Allergens present</p>
+          <div className="allergen-grid">
+            {allergenOptions.map((a) => (
+              <label key={a} className="allergen-chip">
+                <input type="checkbox" checked={allergens.includes(a)} onChange={() => toggleAllergen(a)} />
+                {a}
+              </label>
+            ))}
+          </div>
+        </div>
         {message && <p>{message}</p>}
         <button className="btn btn-primary" type="submit">
           Create listing

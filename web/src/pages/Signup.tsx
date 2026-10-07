@@ -8,14 +8,20 @@ export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [governmentId, setGovernmentId] = useState('')
   const [role, setRole] = useState<'guest' | 'chef'>('guest')
   const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
     try {
-      await signup(name, email, password, role)
+      await signup(name, email, password, role, confirmPassword, role === 'chef' ? governmentId : undefined)
       navigate('/')
     } catch (err) {
       setError((err as Error).message)
@@ -38,6 +44,15 @@ export default function Signup() {
           Password
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
+        <label>
+          Reconfirm Password
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </label>
         <div className="role-pick">
           <label>
             <input
@@ -58,6 +73,18 @@ export default function Signup() {
             Join as Chef
           </label>
         </div>
+        {role === 'chef' && (
+          <label>
+            Government ID
+            <input
+              value={governmentId}
+              onChange={(e) => setGovernmentId(e.target.value)}
+              placeholder="For identity verification as a home chef"
+              required
+            />
+            <span className="hint">Used to verify chef identity. Never shown publicly.</span>
+          </label>
+        )}
         <p className="hint">You can enable the other role later from your profile.</p>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-primary" type="submit">

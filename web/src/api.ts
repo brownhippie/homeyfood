@@ -84,7 +84,14 @@ export interface VideoPost {
 }
 
 export const api = {
-  signup: (body: { name: string; email: string; password: string; role?: 'guest' | 'chef' }) =>
+  signup: (body: {
+    name: string
+    email: string
+    password: string
+    confirmPassword?: string
+    role?: 'guest' | 'chef'
+    governmentId?: string
+  }) =>
     request('/auth/signup', { method: 'POST', body: JSON.stringify(body) }) as Promise<{ token: string; user: User }>,
   login: (body: { email: string; password: string }) =>
     request('/auth/login', { method: 'POST', body: JSON.stringify(body) }) as Promise<{ token: string; user: User }>,
@@ -100,12 +107,17 @@ export const api = {
     delivery?: boolean
     takeOut?: boolean
   }) => request('/me/chef-profile', { method: 'PUT', body: JSON.stringify(body) }),
-  listings: (params?: { mode?: string; tag?: string }) => {
-    const qs = params ? '?' + new URLSearchParams(params as Record<string, string>).toString() : ''
-    return request(`/listings${qs}`) as Promise<any[]>
+  listings: (params?: { mode?: string; tag?: string; excludeAllergen?: string[] }) => {
+    const qs = new URLSearchParams()
+    if (params?.mode) qs.set('mode', params.mode)
+    if (params?.tag) qs.set('tag', params.tag)
+    for (const a of params?.excludeAllergen || []) qs.append('excludeAllergen', a)
+    const str = qs.toString()
+    return request(`/listings${str ? `?${str}` : ''}`) as Promise<any[]>
   },
   createListing: (body: Record<string, unknown>) =>
     request('/listings', { method: 'POST', body: JSON.stringify(body) }),
+  allergens: () => request('/allergens') as Promise<string[]>,
   book: (body: { listingId: number; timeSlot?: string; mode?: string }) =>
     request('/bookings', { method: 'POST', body: JSON.stringify(body) }) as Promise<Booking>,
   myBookings: () => request('/me/bookings') as Promise<Booking[]>,

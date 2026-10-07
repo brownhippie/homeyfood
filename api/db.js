@@ -35,6 +35,12 @@ export function all(sql, params = []) {
   })
 }
 
+async function addColumnIfMissing(table, column, definition) {
+  const columns = await all(`PRAGMA table_info(${table})`)
+  if (columns.some((c) => c.name === column)) return
+  await run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
+}
+
 export async function initDb() {
   await run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,8 +51,10 @@ export async function initDb() {
     is_chef INTEGER NOT NULL DEFAULT 0,
     active_role TEXT NOT NULL DEFAULT 'guest',
     avatar_url TEXT,
+    government_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
+  await addColumnIfMissing('users', 'government_id', 'TEXT')
 
   await run(`CREATE TABLE IF NOT EXISTS chef_profiles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,8 +78,28 @@ export async function initDb() {
     tags TEXT,
     mode TEXT NOT NULL DEFAULT 'eat_in',
     photo_url TEXT,
+    keywords TEXT,
+    cuisine TEXT,
+    category TEXT,
+    serving_time TEXT,
+    capacity INTEGER,
+    rate_per_head_cents INTEGER,
+    continuing_days INTEGER,
+    allergens TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
+  for (const [col, def] of [
+    ['keywords', 'TEXT'],
+    ['cuisine', 'TEXT'],
+    ['category', 'TEXT'],
+    ['serving_time', 'TEXT'],
+    ['capacity', 'INTEGER'],
+    ['rate_per_head_cents', 'INTEGER'],
+    ['continuing_days', 'INTEGER'],
+    ['allergens', 'TEXT'],
+  ]) {
+    await addColumnIfMissing('listings', col, def)
+  }
 
   await run(`CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
