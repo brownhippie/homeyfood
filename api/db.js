@@ -94,6 +94,9 @@ export async function initDb() {
     eat_in_qty INTEGER NOT NULL DEFAULT 0,
     take_out_qty INTEGER NOT NULL DEFAULT 0,
     delivery_qty INTEGER NOT NULL DEFAULT 0,
+    serving_time_from TEXT,
+    serving_time_to TEXT,
+    continued_dates TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`)
   for (const [col, def] of [
@@ -101,6 +104,9 @@ export async function initDb() {
     ['cuisine', 'TEXT'],
     ['category', 'TEXT'],
     ['serving_time', 'TEXT'],
+    ['serving_time_from', 'TEXT'],
+    ['serving_time_to', 'TEXT'],
+    ['continued_dates', 'TEXT'],
     ['capacity', 'INTEGER'],
     ['rate_per_head_cents', 'INTEGER'],
     ['continuing_days', 'INTEGER'],

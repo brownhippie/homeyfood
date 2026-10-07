@@ -58,6 +58,46 @@ impact" at the bottom.
   generic filter panel. The rebuild's search page has no allergy filtering
   at all yet.
 
+## The real Data Types (Data tab, not the popups)
+
+Checked the Bubble app's actual database schema (Data tab → Data Types) for
+the first time, rather than inferring fields from popup labels. This is the
+authoritative source.
+
+The listing type is called **Meals**, not "Listing." Its full field list,
+cross-checked against what the rebuild had:
+
+- Most descriptive fields are **multi-select lists**, not single values:
+  Allergy ingredient, Categories, Cuisines, Dietary Preference,
+  Meals_Keywords, Packaging Type, Portion Size, Preparation Method, Spice
+  Level — all "List of texts." The rebuild had treated cuisine, category,
+  portion size, dietary preference, spice level, and packaging preference as
+  single free-text values. **Fixed**: these now accept comma-separated
+  multi-values, and cuisine/category search filtering switched from exact
+  match to substring match so multi-value fields filter correctly.
+- **Serving_Time_From / Serving_Time_To** are separate date/time fields, not
+  one free-text string like "6-9pm." **Fixed**: split into two time inputs.
+- **Continued_Dates** (list of dates) + **Continued_Days** (yes/no) — a meal
+  can recur across specific listed dates, not a generic "number of days."
+  **Fixed**: replaced the single continuingDays number with a
+  comma-separated continued-dates field.
+- **Delivery / Dine in / Takeout** are boolean yes/no flags paired with
+  separate `_Count` number fields — confirms the eat-in/take-out/delivery
+  quantity model already implemented was the right call.
+- No dedicated photo/image field exists on Meals at all, despite the
+  listingsdeatils popup showing a "Click to upload a file" control — that
+  uploader isn't wired to a saved field in the original app either. Matches
+  the decision to defer real photo upload.
+
+Also discovered three data types with no corresponding fully-built pages:
+**Events** (bare stub: just a text field named "Events" + start/end date),
+**LiveStreamSession** (ChefID, StartTime, EndTime, StreamStatus, StreamURL),
+and **StreamComments** (Author, LiveStreamSession relation, TextComment,
+TimeStamp — a live chat message model). These belong to the live-streaming
+feature, which is already deferred pending a free Agora account — not
+implemented now, but documented here so the eventual livestream build knows
+a chat/session data model already existed in the original app.
+
 ## listingsdeatils — NOT actually empty (re-audited)
 
 The first pass called this page "empty/unbuilt" because only "Group B" showed

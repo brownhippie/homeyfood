@@ -53,14 +53,13 @@ export default function Search() {
       .finally(() => setLoading(false))
   }, [mode, excludeAllergens, cuisine, category, minRating, sort])
 
-  const cuisineOptions = useMemo(
-    () => [...new Set(listings.map((l) => l.cuisine).filter(Boolean))] as string[],
-    [listings]
-  )
-  const categoryOptions = useMemo(
-    () => [...new Set(listings.map((l) => l.category).filter(Boolean))] as string[],
-    [listings]
-  )
+  function splitValues(listings: any[], field: string) {
+    const all = listings.flatMap((l) => (l[field] ? String(l[field]).split(',').map((s) => s.trim()) : []))
+    return [...new Set(all.filter(Boolean))]
+  }
+
+  const cuisineOptions = useMemo(() => splitValues(listings, 'cuisine'), [listings])
+  const categoryOptions = useMemo(() => splitValues(listings, 'category'), [listings])
 
   function toggleExcludeAllergen(a: string) {
     setExcludeAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))

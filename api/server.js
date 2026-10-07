@@ -209,12 +209,12 @@ app.get('/api/listings', async (req, res) => {
     params.push(`%${tag}%`, `%${tag}%`, `%${tag}%`)
   }
   if (cuisine) {
-    sql += ' AND l.cuisine = ?'
-    params.push(cuisine)
+    sql += ' AND l.cuisine LIKE ?'
+    params.push(`%${cuisine}%`)
   }
   if (category) {
-    sql += ' AND l.category = ?'
-    params.push(category)
+    sql += ' AND l.category LIKE ?'
+    params.push(`%${category}%`)
   }
   const excluded = [].concat(excludeAllergen || []).filter(Boolean)
   for (const allergen of excluded) {
@@ -248,6 +248,9 @@ app.post('/api/listings', requireAuth, async (req, res) => {
     cuisine,
     category,
     servingTime,
+    servingTimeFrom,
+    servingTimeTo,
+    continuedDates,
     capacity,
     ratePerHeadCents,
     continuingDays,
@@ -268,8 +271,8 @@ app.post('/api/listings', requireAuth, async (req, res) => {
        chef_id, title, description, tags, mode, photo_url,
        keywords, cuisine, category, serving_time, capacity, rate_per_head_cents, continuing_days, allergens,
        portion_size, dietary_preference, spice_level, dish_prep_info, packaging_preference,
-       eat_in_qty, take_out_qty, delivery_qty
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       eat_in_qty, take_out_qty, delivery_qty, serving_time_from, serving_time_to, continued_dates
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       chefProfile.id,
       title,
@@ -293,6 +296,9 @@ app.post('/api/listings', requireAuth, async (req, res) => {
       eatInQty || 0,
       takeOutQty || 0,
       deliveryQty || 0,
+      servingTimeFrom || null,
+      servingTimeTo || null,
+      continuedDates || null,
     ]
   )
   res.status(201).json(await get('SELECT * FROM listings WHERE id = ?', [id]))

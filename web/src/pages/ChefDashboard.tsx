@@ -10,10 +10,11 @@ export default function ChefDashboard() {
   const [keywords, setKeywords] = useState('')
   const [cuisine, setCuisine] = useState('')
   const [category, setCategory] = useState('')
-  const [servingTime, setServingTime] = useState('')
+  const [servingTimeFrom, setServingTimeFrom] = useState('')
+  const [servingTimeTo, setServingTimeTo] = useState('')
+  const [continuedDates, setContinuedDates] = useState('')
   const [capacity, setCapacity] = useState('')
   const [ratePerHead, setRatePerHead] = useState('')
-  const [continuingDays, setContinuingDays] = useState('')
   const [portionSize, setPortionSize] = useState('')
   const [dietaryPreference, setDietaryPreference] = useState('')
   const [spiceLevel, setSpiceLevel] = useState('')
@@ -88,10 +89,11 @@ export default function ChefDashboard() {
         keywords,
         cuisine,
         category,
-        servingTime,
+        servingTimeFrom,
+        servingTimeTo,
+        continuedDates,
         capacity: capacity ? Number(capacity) : undefined,
         ratePerHeadCents: ratePerHead ? Math.round(Number(ratePerHead) * 100) : undefined,
-        continuingDays: continuingDays ? Number(continuingDays) : undefined,
         allergens,
         portionSize,
         dietaryPreference,
@@ -108,10 +110,11 @@ export default function ChefDashboard() {
       setKeywords('')
       setCuisine('')
       setCategory('')
-      setServingTime('')
+      setServingTimeFrom('')
+      setServingTimeTo('')
+      setContinuedDates('')
       setCapacity('')
       setRatePerHead('')
-      setContinuingDays('')
       setAllergens([])
       setPortionSize('')
       setDietaryPreference('')
@@ -291,21 +294,23 @@ export default function ChefDashboard() {
           />
         </label>
         <label>
-          Cuisine
-          <input value={cuisine} onChange={(e) => setCuisine(e.target.value)} placeholder="e.g. Italian" />
+          Cuisine(s)
+          <input value={cuisine} onChange={(e) => setCuisine(e.target.value)} placeholder="e.g. Italian, Thai (comma-separated)" />
         </label>
         <label>
-          Category
-          <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dinner" />
+          Category(ies)
+          <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dinner, Dessert (comma-separated)" />
         </label>
-        <label>
-          Serving time
-          <input
-            value={servingTime}
-            onChange={(e) => setServingTime(e.target.value)}
-            placeholder="e.g. 6:00 PM - 9:00 PM"
-          />
-        </label>
+        <div className="qty-row">
+          <label>
+            Serving time from
+            <input type="time" value={servingTimeFrom} onChange={(e) => setServingTimeFrom(e.target.value)} />
+          </label>
+          <label>
+            Serving time to
+            <input type="time" value={servingTimeTo} onChange={(e) => setServingTimeTo(e.target.value)} />
+          </label>
+        </div>
         <label>
           Number of people
           <input type="number" min="1" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
@@ -315,32 +320,44 @@ export default function ChefDashboard() {
           <input type="number" min="0" step="0.01" value={ratePerHead} onChange={(e) => setRatePerHead(e.target.value)} />
         </label>
         <label>
-          Continuing days
-          <input type="number" min="1" value={continuingDays} onChange={(e) => setContinuingDays(e.target.value)} />
-        </label>
-        <label>
-          Portion size
-          <input value={portionSize} onChange={(e) => setPortionSize(e.target.value)} placeholder="e.g. Large" />
-        </label>
-        <label>
-          Dietary preference
+          Continued dates
           <input
-            value={dietaryPreference}
-            onChange={(e) => setDietaryPreference(e.target.value)}
-            placeholder="e.g. Vegetarian, Vegan, Halal"
+            value={continuedDates}
+            onChange={(e) => setContinuedDates(e.target.value)}
+            placeholder="e.g. 2026-10-10, 2026-10-12 (comma-separated, leave blank if one-off)"
           />
         </label>
         <label>
-          Spice level
-          <input value={spiceLevel} onChange={(e) => setSpiceLevel(e.target.value)} placeholder="e.g. Mild, Medium, Hot" />
+          Portion size(s)
+          <input value={portionSize} onChange={(e) => setPortionSize(e.target.value)} placeholder="e.g. Small, Large (comma-separated)" />
         </label>
         <label>
-          Dish preparation info
-          <textarea value={dishPrepInfo} onChange={(e) => setDishPrepInfo(e.target.value)} />
+          Dietary preference(s)
+          <input
+            value={dietaryPreference}
+            onChange={(e) => setDietaryPreference(e.target.value)}
+            placeholder="e.g. Vegetarian, Vegan, Halal (comma-separated)"
+          />
         </label>
         <label>
-          Packaging preference
-          <input value={packagingPreference} onChange={(e) => setPackagingPreference(e.target.value)} />
+          Spice level(s)
+          <input value={spiceLevel} onChange={(e) => setSpiceLevel(e.target.value)} placeholder="e.g. Mild, Medium, Hot (comma-separated)" />
+        </label>
+        <label>
+          Preparation method
+          <input
+            value={dishPrepInfo}
+            onChange={(e) => setDishPrepInfo(e.target.value)}
+            placeholder="e.g. Grilled, Slow-cooked (comma-separated)"
+          />
+        </label>
+        <label>
+          Packaging type(s)
+          <input
+            value={packagingPreference}
+            onChange={(e) => setPackagingPreference(e.target.value)}
+            placeholder="e.g. Eco-friendly, Reusable (comma-separated)"
+          />
         </label>
         <div className="qty-row">
           <label>
