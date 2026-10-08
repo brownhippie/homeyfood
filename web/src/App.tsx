@@ -20,8 +20,8 @@ function Nav() {
 
   return (
     <nav className="nav">
-      <Link className="brand" to="/" onClick={() => setOpen(false)}>
-        HomeyFood
+      <Link className="brand-badge" to="/" onClick={() => setOpen(false)}>
+        Homey Food
       </Link>
       <button
         className="nav-toggle"
