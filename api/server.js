@@ -481,27 +481,6 @@ app.get('/api/chefs/:userId/reviews', async (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ ok: true }))
 
-// One-time admin wipe, guarded by a secret env var. Remove after use.
-app.post('/api/admin/wipe-all', async (req, res) => {
-  const key = req.headers['x-admin-key']
-  if (!process.env.ADMIN_WIPE_KEY || key !== process.env.ADMIN_WIPE_KEY) {
-    return res.status(403).json({ error: 'Forbidden' })
-  }
-  for (const table of [
-    'reviews',
-    'video_posts',
-    'recipes',
-    'bookings',
-    'listings',
-    'chef_profiles',
-    'users',
-  ]) {
-    await run(`DELETE FROM ${table}`)
-    await run(`DELETE FROM sqlite_sequence WHERE name = ?`, [table])
-  }
-  res.json({ ok: true, wiped: true })
-})
-
 app.listen(PORT, () => {
   console.log(`HomeyFood API listening on :${PORT}`)
 })
