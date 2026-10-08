@@ -8,6 +8,7 @@ import Search from './pages/Search'
 import ChefDashboard from './pages/ChefDashboard'
 import Bookings from './pages/Bookings'
 import ChefProfile from './pages/ChefProfile'
+import NotFound from './pages/NotFound'
 
 function Nav() {
   const { user, logout } = useAuth()
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/chef" element={<ChefDashboard />} />
         <Route path="/bookings" element={<Bookings />} />
         <Route path="/chefs/:userId" element={<ChefProfile />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AuthProvider>
   )
